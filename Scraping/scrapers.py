@@ -46,7 +46,7 @@ class Denik_Scraper(Scraper):
 class Aktualne_Scraper(Scraper):
     def get_url_content(self, url):
         soup=super().get_soup(url)
-        return super().clean_text(([soup.find("div", {"class": "article__perex"})]+soup.find_all("p"))[:-6])
+        return super().clean_text(([soup.find("div", {"class": "article__perex"})]+soup.find_all("p"))[:-5])
 
 class CT24_Scraper(Scraper):
     def get_url_content(self, url):

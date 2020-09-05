@@ -20,12 +20,15 @@ class Feed_Reader:
         for entry in feedparser.parse(self.url_feed).entries:
             if parser.parse(entry["published"])<=self.last_timestamp:
                 break
+            try:
+                article = self.get_article(entry)
             
-            article = self.get_article(entry)
+                article["content"]=self.scraper.get_url_content(article["url"])
 
-            article["content"]=self.scraper.get_url_content(article["url"])
+                articles.append(article)
+            except:
+                print(self.channel + " error on content downloading")
 
-            articles.append(article)
         
         if len(articles)>0:
             self.last_timestamp=articles[0]["published_date"]
@@ -40,7 +43,7 @@ class IDNES_Reader(Feed_Reader):
         super().__init__()
     
     def get_article(self,entry):
-        return  {'title':entry["title"],'summary':entry["summary"],'published_date':parser.parse(entry["published"]),'url':entry["link"],'image_url':entry["media_content"][0]["url"],'channel':self.channel}
+        return  {'id':entry["id"],'title':entry["title"],'summary':entry["summary"],'published_date':parser.parse(entry["published"]),'url':entry["link"],'image_url':entry["media_content"][0]["url"],'channel':self.channel}
 
     
 class CT24_Reader(Feed_Reader):
@@ -51,7 +54,7 @@ class CT24_Reader(Feed_Reader):
         super().__init__()
     
     def get_article(self,entry):
-        return  {'title':entry["title"],'summary':entry["summary"],'published_date':parser.parse(entry["published"]),'url':entry["link"],'image_url':entry["media_content"][0]["url"],'channel':self.channel}
+        return  {'id':entry["id"].split('/')[-1],'title':entry["title"],'summary':entry["summary"],'published_date':parser.parse(entry["published"]),'url':entry["link"],'image_url':entry["media_content"][0]["url"],'channel':self.channel}
 
 class Novinky_Reader(Feed_Reader):
     def __init__(self):
@@ -61,7 +64,7 @@ class Novinky_Reader(Feed_Reader):
         super().__init__()
     
     def get_article(self,entry):
-        return  {'title':entry["title"],'summary':entry["summary"],'published_date':parser.parse(entry["published"]),'url':entry["link"],'image_url':re.search('<img src="(.*)" alt="', entry["content"][0]["value"]).group(1),'channel':self.channel}
+        return  {'id':entry["id"].split('/')[-1],'title':entry["title"],'summary':entry["summary"],'published_date':parser.parse(entry["published"]),'url':entry["link"],'image_url':entry["szn_url"],'channel':self.channel}
 
 
 class Aktualne_Reader(Feed_Reader):
@@ -72,7 +75,7 @@ class Aktualne_Reader(Feed_Reader):
         super().__init__()
     
     def get_article(self,entry):
-        return  {'title':entry["title"],'summary':entry["summary"],'published_date':parser.parse(entry["published"]),'url':entry["link"],'image_url':entry["szn_url"],'channel':self.channel}
+        return  {'id':entry["id"],'title':entry["title"],'summary':entry["summary"],'published_date':parser.parse(entry["published"]),'url':entry["link"],'image_url':re.search('<img src="(.*)" alt="', entry["content"][0]["value"]).group(1),'channel':self.channel}
 
 
 class Denik_Reader(Feed_Reader):
@@ -83,4 +86,4 @@ class Denik_Reader(Feed_Reader):
         super().__init__()
     
     def get_article(self,entry):
-        return  {'title':entry["title"],'summary':entry["summary"],'published_date':parser.parse(entry["published"]),'url':entry["link"],'image_url':entry["media_url"][:-7]+"630-16x9.jpg",'channel':self.channel}
+        return  {'id':entry["id"].split('/')[-1],'title':entry["title"],'summary':entry["summary"],'published_date':parser.parse(entry["published"]),'url':entry["link"],'image_url':entry["media_url"][:-7]+"630-16x9.jpg",'channel':self.channel}
