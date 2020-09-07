@@ -40,5 +40,4 @@ def get_majka():
 def get_stopwords():
     with open("../Clustering/stopwords.txt") as f:
         stopwords = f.read().splitlines()
-    
     return stopwords
