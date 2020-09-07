@@ -17,12 +17,15 @@ from multiprocessing import Pool
 
 import networkx as nx
 
-
+import os
+DIR_PATH = os.getcwd()
+ 
 path= sys.argv[1] if len(sys.argv) > 1 else r"newscrawl.csv"
-threshold= float(sys.argv[2]) if len(sys.argv) > 2 else 0.87
+threshold= float(sys.argv[2]) if len(sys.argv) > 2 else 0.88
 save= int(sys.argv[3]) if len(sys.argv) > 3 else 1
 
-ft_model=FastText.load("fasttext_model")
+morph = majka.Majka('majka.w-lt')
+ft_model=FastText.load(str(DIR_PATH)+"\\model_best")
 
 morph = majka.Majka('majka.w-lt')
 morph.tags = False
@@ -30,17 +33,16 @@ morph.first_only = True
 morph.negative = "ne"
 
 
-stopwords=get_stop_words('czech')
+with open(str(DIR_PATH)+"\\stopwords.txt") as f:
+    stopwords = f.read().splitlines()
 
 def preprocess_text(doc):
-    # Removes special characters
-    doc = re.sub(r'\W', ' ', str(doc))
             
     # To lowercase
     doc = doc.lower()
 
     # Tokenization and lemmatization
-    tokens=[[morph.find(word)[0]["lemma"] for word in nltk.word_tokenize(sentence) if word not in stopwords and len(morph.find(word)) != 0] for sentence in nltk.sent_tokenize(doc)]
+    tokens=[[morph.find(word)[0]["lemma"] for word in nltk.word_tokenize(re.sub(r'\W', ' ', str(sentence))) if word not in stopwords and len(morph.find(word)) != 0] for sentence in nltk.sent_tokenize(doc)]
 
     return tokens
 
