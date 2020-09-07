@@ -6,9 +6,8 @@ from firebase_admin import firestore
 
 # Use a service account
 cred = credentials.Certificate('mej-prehled-288419-5e22102b957f.json')
-firebase_admin.initialize_app(cred)
 
-db = firestore.client()
+firebase_admin.initialize_app(cred)
 
 feed_readers=[]
 
@@ -18,8 +17,6 @@ feed_readers.append(Aktualne_Reader())
 feed_readers.append(Denik_Reader())
 feed_readers.append(CT24_Reader())
 
-collection_ref=db.collection(u'articles')
-
 while True:
     articles=[]
 
@@ -28,6 +25,8 @@ while True:
 
     for article in articles:
 
+        db = firestore.client()
+        
         doc= db.collection(u'articles').document(article["channel"]+"_"+article["id"])
 
         if doc.get().exists==True:
