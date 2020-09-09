@@ -38,6 +38,6 @@ def get_majka():
     return morph
 
 def get_stopwords():
-    with open("../Clustering/stopwords.txt") as f:
+    with open("../Clustering/stopwords.txt",encoding="utf-8") as f:
         stopwords = f.read().splitlines()
     return stopwords
