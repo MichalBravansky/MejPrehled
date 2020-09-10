@@ -1,6 +1,6 @@
 # Mej Prehled
 
-A winning project of the czech Students` Professional Activities
+A winning project of the czech Students` Professional Activities (https://www.soc.cz/english/)
 
 Video in czech: https://www.youtube.com/watch?v=_6Ak-QOZKQo&t=3s&ab_channel=MichalBravansk%C3%BD
 
