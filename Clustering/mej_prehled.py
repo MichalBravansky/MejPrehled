@@ -15,13 +15,13 @@ import sys
 import nltk
 from multiprocessing import Pool
 from image_processing import *
-from credentials import twitter_credentials,facebook_token
+from credentials import twitter_credentials,facebook_token, instagram_credentials
 
 import networkx as nx
 
 import os
 
-threshold= 0.92
+threshold= 0.925
 rating_threshold=10
 hour_difference=24
 
@@ -45,6 +45,13 @@ twitter_credentials["access_token_secret"])
 
 with open("stopwords.txt") as f:
     stopwords = f.read().splitlines()
+
+
+def publish_instagram(img_string):
+    r = requests.post('https://api.imgbb.com/1/upload', data={"key": instagram_credentials["imgbb_key"],"image":img_string})
+    img_url=r["data"]["url"]
+
+    requests.post(instagram_credentials["rss_url"], data={"key": instagram_credentials["rss_key"],"image":img_url})
 
 def preprocess_text(doc):
             

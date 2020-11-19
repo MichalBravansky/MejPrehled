@@ -79,5 +79,9 @@ def get_image(url,text, background_type, size=15):
         draw.text((int(img.size[0]*1/20), int(startY+heightSizes[numberOfRounds])),item,(255,255,255),font=font)
         numberOfRounds+=1
 
+    #converts img to base64
+    img.save(r"C:\photo.png")
+    with open(r"C:\photo.png", "rb") as loaded:
+        return loaded.read()
 
-    return img
+    return ""
