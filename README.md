@@ -6,7 +6,7 @@ Měj Přehled is a project whose goal is to an automatic news feed on social med
 The project contains three main folders. One for scrapers, which download news articles from the Web. Another python program is used for training the FastText model. The last one publishes news posts to social media.
 
 
-##Awards
+## Awards
 
 This project won the 2020 [Students` Professional Activities](https://www.soc.cz/english/)
 
