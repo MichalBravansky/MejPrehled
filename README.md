@@ -1,4 +1,4 @@
-# MejPrehled
+# Měj Přehled
 
 Měj Přehled is a project whose goal is to an automatic news feed on social media.
 
