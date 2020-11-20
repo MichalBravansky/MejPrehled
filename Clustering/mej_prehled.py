@@ -21,22 +21,28 @@ import networkx as nx
 
 import os
 
+# Sets up constants
 threshold= 0.925
 rating_threshold=10
 hour_difference=24
+time_rating=0.0005
+length_rating=0.005
 
+# Loads model
 model_path="ft_model"
-morph = majka.Majka('majka.w-lt')
 ft_model=FastText.load(model_path)
 
+# Sets up Majka
+morph = majka.Majka('majka.w-lt')
 morph = majka.Majka('majka.w-lt')
 morph.tags = False
 morph.first_only = True
 morph.negative = "ne"
 
-
+# Instagram hashtags
 hashtags="#czech #igerscz #czechrepublic #czech_world #dnes #zpravy #zpravodajstvi #novinky #ceskarepublika #praha #brno"
 
+# Starting Twitter client
 twitter_client = twitter.Api(twitter_credentials["consumer_key"],
 twitter_credentials["consumer_secret"],
 twitter_credentials["access_token_key"],
@@ -46,7 +52,7 @@ twitter_credentials["access_token_secret"])
 with open("stopwords.txt") as f:
     stopwords = f.read().splitlines()
 
-
+# Adds post to RSS Feed
 def publish_instagram(img_string):
     r = requests.post('https://api.imgbb.com/1/upload', data={"key": instagram_credentials["imgbb_key"],"image":img_string})
     img_url=r["data"]["url"]
@@ -63,7 +69,7 @@ def preprocess_text(doc):
 
     return tokens
 
-#selects the content of the article from the database
+# Selects the content of the article from the database
 def get_content(article_id):
     text="select [Text] from dbo.[Paragraph] WHERE Article_ID=?"
     paragraphs=pd.read_sql_query(text, cnxn,[article_id])
@@ -94,11 +100,11 @@ while(True):
         while(True):
             now = datetime.now()
 
-            #loads new or updated articles
+            # Loads new or updated articles
             command='select  Article_ID,Url, NewsType_ID, SourceType_ID,Title,ImageUrl,ReleasedDate,LastChange from dbo.[Article] WHERE Downloaded = 1 AND LastChange>? ORDER BY LastChange'
             df = pd.read_sql_query(command, cnxn,[end_date])
 
-            #if any article was added or updated
+            # If any article was added or updated
             if(len(df.index))>0:
                 df["content"]=df["article_id"].apply(lambda id: get_content(id))
 
@@ -118,7 +124,7 @@ while(True):
                 end_date=articles.iloc[-1]["lastchange"]
 
 
-                #breaks the loop and tries to cluster them
+                # Breaks the loop and tries to cluster articles
                 break
 
 
@@ -158,6 +164,15 @@ while(True):
                     uniqueSources.append(data)
                 rating+=1
             
+            # Takes into account the time difference
+            firstReleasedDate=sorted([articles.iloc[id]["releaseddate"] for id in cluster])[0]
+            lastReleasedDate=sorted([articles.iloc[id]["releaseddate"] for id in cluster])[-1]
+            rating-=(lastReleasedDate.total_seconds()-firstReleasedDate.total_seconds())*time_rating
+
+            # Works with the average length
+            lengthSum=sum([articles.iloc[id]["content"] for id in cluster])
+            rating+=lengthSum*length_rating
+
             return rating
 
     # Creates a graph of these similarities
@@ -207,16 +222,16 @@ while(True):
 
             ids=item.get("ids")
 
-            #gets the sum of all the cosine simularities
+            # Gets the sum of all the cosine simularities
             sums=numpy.array([sum([matrix[id,other_id] for other_id in ids]) for id in ids])
 
-            #selects the most representing article for the cluster
+            # Selects the most representing article for the cluster
             row=articles.iloc[ids[sums.argmax()]]
 
             
             twitter_post=str(row["title"])
 
-            #selects the article's content
+            # Selects the first paragraph of the article
             command="select [Text] from dbo.[Paragraph] WHERE Article_ID=?"
             paragraphs=pd.read_sql_query(command, cnxn,[row["article_id"]])
 
@@ -224,16 +239,16 @@ while(True):
 
             twitter_post+="\n"+row["url"]
             
-            #posts to Twitter
+            # Posts to Twitter
             twitter_client.PostUpdate(twitter_post)
 
             image_string=get_image(imageurl,str(row["title"]),row["newstype_id"])
 
-            #posts to Instagram
-            publish_to_instagram(image_string,(textFB+"\n\n"+hashtags)) 
+            # Posts to Instagram
+            publish_instagram(image_string,(textFB+"\n\n"+hashtags)) 
             
             textFB=str(paragraphs["text"][0])+"\n\nZdroj: "+row["url"]
 
-            #posts to Facebook
+            # Posts to Facebook
             requests.post("https://graph.facebook.com/112271243613938/photos",files={'photo.png':image_string}, data={'caption':textFB, 'access_token': facebook_token})
 
